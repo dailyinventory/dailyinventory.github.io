@@ -39,6 +39,13 @@ jobs:
           NODE_ENV: production
           GITHUB_PAGES: 'true'
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 5
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:

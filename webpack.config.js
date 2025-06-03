@@ -153,7 +153,7 @@ module.exports = (env, argv) => {
             new HtmlWebpackPlugin({
                 template: './index.html',
                 filename: 'index.html',
-                inject: true,
+                inject: false,
                 minify: isProduction ? {
                     removeComments: true,
                     collapseWhitespace: true,
