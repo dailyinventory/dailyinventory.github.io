@@ -3,7 +3,6 @@ const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const fs = require('fs');
 
@@ -151,23 +150,6 @@ module.exports = (env, argv) => {
                 jQuery: 'jquery',
                 'window.jQuery': 'jquery'
             }),
-            new HtmlWebpackPlugin({
-                template: './index.html',
-                filename: 'index.html',
-                inject: false,
-                minify: isProduction ? {
-                    removeComments: true,
-                    collapseWhitespace: true,
-                    removeRedundantAttributes: true,
-                    useShortDoctype: true,
-                    removeEmptyAttributes: true,
-                    removeStyleLinkTypeAttributes: true,
-                    keepClosingSlash: true,
-                    minifyJS: true,
-                    minifyCSS: true,
-                    minifyURLs: true,
-                } : false
-            }),
             new MiniCssExtractPlugin({
                 filename: 'assets/css/[name].bundle.css',
                 chunkFilename: 'assets/css/[id].bundle.css'
@@ -190,6 +172,11 @@ module.exports = (env, argv) => {
                     {
                         from: path.resolve(__dirname, 'assets/js/sw.js'),
                         to: path.resolve(__dirname, 'dist/assets/js/sw.js'),
+                        noErrorOnMissing: true
+                    },
+                    {
+                        from: path.resolve(__dirname, 'index.html'),
+                        to: path.resolve(__dirname, 'dist/index.html'),
                         noErrorOnMissing: true
                     }
                 ]
