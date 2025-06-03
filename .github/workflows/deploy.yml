@@ -29,19 +29,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Show Directory Tree
-        run: |
-          sudo apt-get update
-          sudo apt-get install tree
-          tree -a -L 4
-
-      # - name: Create Directories
-      #   run: |
-      #     mkdir -p assets/images/icons
-
-      # - name: Generate Icons
-      #   run: npm run generate-icons
-
       - name: Build
         run: npm run build
         env:
