@@ -64,7 +64,6 @@ dailyinventory.github.io/
 │   │   └── jquery-ui.css
 │   ├── js/
 │   │   ├── script.js
-│   │   └── sw.js
 │   └── images/
 │       └── icons/
 ├── dist/           # Production build output
