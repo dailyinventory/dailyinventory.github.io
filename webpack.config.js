@@ -122,7 +122,8 @@ module.exports = (env, argv) => {
                         {
                             loader: 'html-loader',
                             options: {
-                                minimize: isProduction
+                                minimize: isProduction,
+                                sources: false
                             }
                         }
                     ]
