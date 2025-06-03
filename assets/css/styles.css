@@ -1,0 +1,250 @@
+html, body { 
+    touch-action: none; 
+}
+
+body { 
+    font-family: Arial, sans-serif; 
+}
+
+.table th,
+.table td {
+    text-align: center;
+    cursor: pointer;
+    padding: 15px;
+    border: 2px solid black !important;
+    font-size: 1rem;
+    line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.table {
+    border: 2px solid black !important;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.table-dark th { 
+    color: black; 
+}
+
+.clickable { 
+    cursor: pointer; 
+}
+
+.selected-left { 
+    background-color: #ffe69c; 
+}
+
+.selected-right { 
+    background-color: #a3cfbb; 
+}
+
+.disabled { 
+    pointer-events: none; 
+    opacity: 0.5; 
+}
+
+.modal-content { 
+    padding: 15px; 
+}
+
+#date-picker { 
+    display: none; 
+}
+
+.counter { 
+    margin-top: 20px; 
+    font-size: 18px; 
+}
+
+.ui-datepicker {
+    background-color: #fff;
+    border: 2px solid black !important;
+    border-radius: 0;
+    padding: 10px;
+    width: 300px;
+    font-family: Arial, sans-serif;
+}
+
+.ui-datepicker .ui-datepicker-header {
+    background-color: var(--bs-primary-border-subtle);
+    border: none;
+    color: var(--bs-primary-text-emphasis);
+    padding: 5px;
+    text-align: center;
+}
+
+.ui-datepicker .ui-datepicker-title {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.ui-datepicker .ui-datepicker-prev,
+.ui-datepicker .ui-datepicker-next {
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    width: 30px;
+    height: 30px;
+    text-indent: -9999px;
+    border: none;
+    background: none;
+}
+
+.ui-datepicker .ui-datepicker-prev {
+    left: 5px;
+}
+
+.ui-datepicker .ui-datepicker-next {
+    right: 5px;
+}
+
+.ui-datepicker .ui-datepicker-prev:after {
+    content: "←";
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.ui-datepicker .ui-datepicker-next:after {
+    content: "→";
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.ui-datepicker table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+}
+
+.ui-datepicker th {
+    padding: 5px;
+    text-align: center;
+    font-weight: bold;
+    border: none;
+    color: var(--bs-primary-text-emphasis);
+}
+
+.ui-datepicker td {
+    padding: 2px;
+    text-align: center;
+    border: none;
+}
+
+.ui-datepicker td span,
+.ui-datepicker td a {
+    display: block;
+    padding: 5px;
+    text-align: center;
+    text-decoration: none;
+    color: #000;
+    border: 1px solid transparent;
+}
+
+.ui-datepicker td a:hover {
+    background-color: var(--bs-primary-border-subtle);
+    border: 1px solid black;
+}
+
+.ui-datepicker .ui-state-active {
+    background-color: #a3cfbb !important;
+    border: 1px solid black !important;
+    color: #000 !important;
+}
+
+.ui-datepicker .ui-state-disabled {
+    opacity: 0.35;
+}
+
+/* Today Button Styling */
+.ui-datepicker .ui-datepicker-buttonpane {
+    border-top: 1px solid #ddd;
+    margin-top: 5px;
+    padding-top: 5px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button {
+    background-color: var(--bs-primary-border-subtle);
+    border: 1px solid black;
+    color: #000;
+    padding: 8px 0;
+    margin: 0;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    border-radius: 0;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button:hover {
+    background-color: #b6d4fe;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button.ui-state-hover {
+    background-color: #b6d4fe;
+    border-color: black;
+}
+
+/* Hide the Done button */
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-close {
+    display: none;
+}
+
+.btn-primary {
+    background-color: #cfe2ff !important;
+    border-color: #cfe2ff !important;
+    color: #000 !important;
+}
+
+.btn-primary:hover {
+    background-color: #b6d4fe !important;
+    border-color: #b6d4fe !important;
+}
+
+.alert-primary {
+    background-color: var(--bs-primary-border-subtle);
+    border-color: var(--bs-primary-border-subtle);
+    color: var(--bs-primary-text-emphasis);
+}
+
+@media (max-width: 450px) {
+    .table th,
+    .table td {
+        padding: 12px 12px;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    .table th { 
+        font-size: 0.85rem; 
+    }
+
+    .table th:nth-child(1),
+    .table td:nth-child(1) { 
+        width: 40%; 
+    }
+    
+    .table th:nth-child(2),
+    .table td:nth-child(2) { 
+        width: 20%; 
+    }
+    
+    .table th:nth-child(3),
+    .table td:nth-child(3) { 
+        width: 40%; 
+    }
+} 
