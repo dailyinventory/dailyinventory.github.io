@@ -20,7 +20,6 @@ const directoryExists = (dirPath) => {
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
-    const iconsDir = path.resolve(__dirname, 'assets/images/icons');
     const imagesDir = path.resolve(__dirname, 'assets/images');
 
     return {
@@ -167,11 +166,6 @@ module.exports = (env, argv) => {
                     {
                         from: path.resolve(__dirname, 'manifest.json'),
                         to: path.resolve(__dirname, 'dist/manifest.json'),
-                        noErrorOnMissing: true
-                    },
-                    {
-                        from: path.resolve(__dirname, 'assets/js/sw.js'),
-                        to: path.resolve(__dirname, 'dist/assets/js/sw.js'),
                         noErrorOnMissing: true
                     },
                     {

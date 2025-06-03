@@ -376,19 +376,6 @@ $(document).ready(function() {
   });
 });
 
-// Service Worker Registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-      navigator.serviceWorker.register('assets/js/sw.js')
-          .then(registration => {
-              console.log('ServiceWorker registration successful');
-          })
-          .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
-          });
-  });
-}
-
 // Prevent zoom but allow scrolling, excluding canvas elements
 function shouldPreventZoom(e) {
   return e.target.tagName.toLowerCase() !== 'canvas' && e.scale !== 1;
