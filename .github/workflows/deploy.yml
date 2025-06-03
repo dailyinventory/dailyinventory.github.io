@@ -45,4 +45,4 @@ jobs:
           folder: dist        # The folder the action should deploy
           branch: gh-pages    # The branch the action should deploy to
           clean: true         # Automatically remove deleted files from the deployment
-          commit-message: "Deploy to GitHub Pages" # Custom commit message 
+          commit-message: "Deploy to GitHub Pages" # Custom commit message
