@@ -24,14 +24,6 @@ module.exports = (env, argv) => {
     const iconsDir = path.resolve(__dirname, 'assets/images/icons');
     const imagesDir = path.resolve(__dirname, 'assets/images');
 
-    // Create directories if they don't exist
-    if (!directoryExists(iconsDir)) {
-        fs.mkdirSync(iconsDir, { recursive: true });
-    }
-    if (!directoryExists(imagesDir)) {
-        fs.mkdirSync(imagesDir, { recursive: true });
-    }
-
     return {
         mode: isProduction ? 'production' : 'development',
         entry: {
@@ -92,7 +84,7 @@ module.exports = (env, argv) => {
                     },
                     extractComments: false,
                 }),
-                new CssMinimizerPlugin(),
+                // new CssMinimizerPlugin(),  // Temporarily disabled
             ],
             splitChunks: {
                 chunks: 'all',
@@ -149,13 +141,6 @@ module.exports = (env, argv) => {
                     generator: {
                         filename: 'assets/fonts/[name][ext]'
                     }
-                },
-                {
-                    test: /\.(png|jpg|jpeg|gif|svg|ico)$/i,
-                    type: 'asset/resource',
-                    generator: {
-                        filename: 'assets/images/[path][name][ext]'
-                    }
                 }
             ]
         },
@@ -183,8 +168,7 @@ module.exports = (env, argv) => {
                 } : false
             }),
             new MiniCssExtractPlugin({
-                filename: 'assets/css/[name].bundle.css',
-                chunkFilename: 'assets/css/[id].bundle.css'
+                filename: 'assets/css/[name].css'
             }),
             new CopyPlugin({
                 patterns: [
@@ -205,11 +189,6 @@ module.exports = (env, argv) => {
                         from: path.resolve(__dirname, 'assets/js/sw.js'),
                         to: path.resolve(__dirname, 'dist/assets/js/sw.js'),
                         noErrorOnMissing: true
-                    },
-                    {
-                        from: iconsDir,
-                        to: 'assets/images/icons',
-                        noErrorOnMissing: false
                     }
                 ]
             })
