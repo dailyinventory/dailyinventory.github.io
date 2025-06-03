@@ -168,7 +168,8 @@ module.exports = (env, argv) => {
                 } : false
             }),
             new MiniCssExtractPlugin({
-                filename: 'assets/css/[name].css'
+                filename: 'assets/css/[name].css',
+                chunkFilename: 'assets/css/[id].css'
             }),
             new CopyPlugin({
                 patterns: [
