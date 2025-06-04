@@ -5,18 +5,10 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const webpack = require('webpack');
 const fs = require('fs');
+const gitRevSync = require('git-rev-sync');
 
 // Check if we're building for GitHub Pages
 const isGitHubPages = process.env.GITHUB_PAGES === 'true';
-
-// Function to check if directory exists
-const directoryExists = (dirPath) => {
-    try {
-        return fs.existsSync(dirPath);
-    } catch (err) {
-        return false;
-    }
-};
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
@@ -161,7 +153,13 @@ module.exports = (env, argv) => {
                         to: path.resolve(__dirname, 'dist/index.html'),
                         noErrorOnMissing: true,
                         transform(content) {
-                            return content; // Return content as-is without any processing
+                            const html = content.toString();
+                            const commitId = gitRevSync.short();
+                            // Add commit hash at the bottom of the body
+                            return html.replace(
+                                '</body>',
+                                `<div style="text-align: center; padding: 10px; font-size: 12px; color: #666;">Build: ${commitId}</div></body>`
+                            );
                         }
                     }
                 ]
