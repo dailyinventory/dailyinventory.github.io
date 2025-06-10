@@ -153,13 +153,21 @@ module.exports = (env, argv) => {
                         to: path.resolve(__dirname, 'dist/index.html'),
                         noErrorOnMissing: true,
                         transform(content) {
-                            const html = content.toString();
-                            const commitId = gitRevSync.short();
-                            // Add commit hash at the bottom of the body
-                            return html.replace(
-                                '</body>',
-                                `<div style="text-align: center; padding: 10px; font-size: 12px; color: #666;">Build: ${commitId}</div></body>`
-                            );
+                            try {
+                                console.log('Getting Git commit hash...');
+                                const commitId = gitRevSync.short();
+                                console.log('Commit hash:', commitId);
+                                const html = content.toString();
+                                const modifiedHtml = html.replace(
+                                    '</body>',
+                                    `<div style="text-align: center; padding: 10px; font-size: 12px; color: #666;">Build: ${commitId}</div></body>`
+                                );
+                                console.log('HTML modified successfully');
+                                return modifiedHtml;
+                            } catch (error) {
+                                console.error('Error in transform function:', error);
+                                return content;
+                            }
                         }
                     }
                 ]
