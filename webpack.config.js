@@ -37,7 +37,7 @@ module.exports = (env, argv) => {
             filename: 'assets/js/[name].bundle.js',
             path: path.resolve(__dirname, 'dist'),
             clean: true,
-            publicPath: isGitHubPages ? '/dailyinventory.github.io/' : '/'
+            publicPath: isGitHubPages ? 'https://dailyinventory.github.io/' : '/'
         },
         devServer: {
             static: {
