@@ -104,6 +104,7 @@ function App() {
   const [notificationService] = useState(() => new NotificationService());
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState({ hour: 9, minute: 0 });
+  const [showFirstTimeNotificationModal, setShowFirstTimeNotificationModal] = useState(false);
 
   // Close all modals
   const closeAllModals = () => {
@@ -111,6 +112,7 @@ function App() {
     setShowSettingsModal(false);
     setShowInstallModal(false);
     setShowResetModal(false);
+    setShowFirstTimeNotificationModal(false);
   };
 
   // Handle escape key and outside clicks
@@ -128,7 +130,13 @@ function App() {
     };
 
     // Add event listeners if any modal is open
-    if (showChartsModal || showSettingsModal || showInstallModal || showResetModal) {
+    if (
+      showChartsModal ||
+      showSettingsModal ||
+      showInstallModal ||
+      showResetModal ||
+      showFirstTimeNotificationModal
+    ) {
       document.addEventListener('keydown', handleEscape);
       document.addEventListener('click', handleOutsideClick);
     }
@@ -138,7 +146,13 @@ function App() {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('click', handleOutsideClick);
     };
-  }, [showChartsModal, showSettingsModal, showInstallModal, showResetModal]);
+  }, [
+    showChartsModal,
+    showSettingsModal,
+    showInstallModal,
+    showResetModal,
+    showFirstTimeNotificationModal,
+  ]);
 
   // Inject git commit hash
   useEffect(() => {
@@ -165,6 +179,20 @@ function App() {
 
     initNotifications();
   }, [notificationService]);
+
+  // Check if this is the user's first time and show notification prompt
+  useEffect(() => {
+    const hasSeenNotificationPrompt = localStorage.getItem('hasSeenNotificationPrompt');
+
+    if (!hasSeenNotificationPrompt && notificationService.isSupported) {
+      // Wait a moment for the app to load, then show the prompt
+      const timer = setTimeout(() => {
+        setShowFirstTimeNotificationModal(true);
+      }, 2000); // Show after 2 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [notificationService.isSupported]);
 
   const isDateInPast = React.useCallback(
     (date) => {
@@ -435,6 +463,35 @@ function App() {
     } catch (error) {
       console.error('Error testing notification:', error);
     }
+  };
+
+  // First-time notification modal handlers
+  const handleFirstTimeEnableNotifications = async () => {
+    try {
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+        await notificationService.scheduleDailyNotification(
+          notificationTime.hour,
+          notificationTime.minute
+        );
+      }
+      // Mark that user has seen the prompt
+      localStorage.setItem('hasSeenNotificationPrompt', 'true');
+      setShowFirstTimeNotificationModal(false);
+    } catch (error) {
+      console.error('Error enabling notifications:', error);
+    }
+  };
+
+  const handleFirstTimeSkipNotifications = () => {
+    // Mark that user has seen the prompt
+    localStorage.setItem('hasSeenNotificationPrompt', 'true');
+    setShowFirstTimeNotificationModal(false);
+  };
+
+  const handleFirstTimeUpdateNotificationTime = (hour, minute) => {
+    setNotificationTime({ hour, minute });
   };
 
   const remainingFields = getRemainingFields();
@@ -948,6 +1005,113 @@ function App() {
                 </button>
                 <button type="button" className="btn btn-danger" onClick={resetAllData}>
                   Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* First-Time Notification Modal */}
+      {showFirstTimeNotificationModal && (
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+        >
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <FontAwesomeIcon icon={faBell} className="me-2" />
+                  Stay on Track with Daily Reminders
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleFirstTimeSkipNotifications}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="text-center mb-4">
+                  <h6>
+                    Would you like to receive daily reminders to complete your spiritual inventory?
+                  </h6>
+                  <p className="text-muted">
+                    This helps maintain consistency in your spiritual growth journey. You can always
+                    change this later in settings.
+                  </p>
+                </div>
+
+                <div className="card">
+                  <div className="card-body">
+                    <label className="form-label fw-bold">Set your preferred reminder time:</label>
+                    <div className="row">
+                      <div className="col-6">
+                        <select
+                          className="form-select"
+                          value={notificationTime.hour}
+                          onChange={(e) =>
+                            handleFirstTimeUpdateNotificationTime(
+                              parseInt(e.target.value),
+                              notificationTime.minute
+                            )
+                          }
+                        >
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <option key={i} value={i}>
+                              {i === 0 ? '12' : i > 12 ? i - 12 : i} {i >= 12 ? 'PM' : 'AM'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col-6">
+                        <select
+                          className="form-select"
+                          value={notificationTime.minute}
+                          onChange={(e) =>
+                            handleFirstTimeUpdateNotificationTime(
+                              notificationTime.hour,
+                              parseInt(e.target.value)
+                            )
+                          }
+                        >
+                          {Array.from({ length: 60 }, (_, i) => (
+                            <option key={i} value={i}>
+                              {i.toString().padStart(2, '0')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <small className="text-muted">
+                      You&apos;ll receive a daily reminder at{' '}
+                      {notificationTime.hour === 0
+                        ? '12'
+                        : notificationTime.hour > 12
+                          ? notificationTime.hour - 12
+                          : notificationTime.hour}
+                      :{notificationTime.minute.toString().padStart(2, '0')}{' '}
+                      {notificationTime.hour >= 12 ? 'PM' : 'AM'}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={handleFirstTimeSkipNotifications}
+                >
+                  Maybe Later
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleFirstTimeEnableNotifications}
+                >
+                  <FontAwesomeIcon icon={faBell} className="me-2" />
+                  Enable Daily Reminders
                 </button>
               </div>
             </div>
