@@ -16,6 +16,47 @@ class NotificationService {
       // Register service worker
       this.registration = await navigator.serviceWorker.register('/sw.js');
       console.log('Service Worker registered:', this.registration);
+
+      // Wait for the service worker to be ready
+      if (this.registration.installing) {
+        console.log('Service worker installing...');
+        await new Promise((resolve) => {
+          this.registration.installing.addEventListener('statechange', () => {
+            if (this.registration.installing.state === 'installed') {
+              resolve();
+            }
+          });
+        });
+      }
+
+      // Wait for the service worker to be activated
+      if (this.registration.waiting) {
+        console.log('Service worker waiting...');
+        await new Promise((resolve) => {
+          this.registration.waiting.addEventListener('statechange', () => {
+            if (this.registration.waiting.state === 'activated') {
+              resolve();
+            }
+          });
+        });
+      }
+
+      // Ensure we have an active service worker
+      if (!this.registration.active) {
+        console.log('Waiting for service worker to activate...');
+        await new Promise((resolve) => {
+          const checkActive = () => {
+            if (this.registration.active) {
+              resolve();
+            } else {
+              setTimeout(checkActive, 100);
+            }
+          };
+          checkActive();
+        });
+      }
+
+      console.log('Service worker ready:', this.registration.active);
       return true;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
@@ -93,6 +134,17 @@ class NotificationService {
     }
 
     try {
+      // Ensure service worker is ready
+      if (!this.registration || !this.registration.active) {
+        console.log('Service worker not ready, attempting to register...');
+        await this.init();
+      }
+
+      // Double-check if registration is available
+      if (!this.registration || !this.registration.active) {
+        throw new Error('Service worker not available');
+      }
+
       await this.registration.showNotification(title, {
         body,
         icon: '/assets/images/icons/favicon-192x192.png',
@@ -114,6 +166,18 @@ class NotificationService {
       });
     } catch (error) {
       console.error('Error showing notification:', error);
+
+      // Fallback to browser notification if service worker fails
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification(title, {
+            body,
+            icon: '/assets/images/icons/favicon-192x192.png',
+          });
+        } catch (fallbackError) {
+          console.error('Fallback notification also failed:', fallbackError);
+        }
+      }
     }
   }
 
@@ -136,10 +200,21 @@ class NotificationService {
     }
   }
 
+  // Check if service worker is ready
+  isServiceWorkerReady() {
+    return this.registration && this.registration.active;
+  }
+
   // Test notification
   async testNotification() {
     if (!this.isEnabled()) {
       throw new Error('Notifications not enabled');
+    }
+
+    // Ensure service worker is ready before testing
+    if (!this.isServiceWorkerReady()) {
+      console.log('Service worker not ready, initializing...');
+      await this.init();
     }
 
     await this.showNotification(

@@ -27,6 +27,11 @@ import './assets/css/styles.css';
 // Import notification service
 import NotificationService from './assets/js/notificationService';
 
+// Environment detection
+const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
 // Extend dayjs with timezone support
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -105,6 +110,8 @@ function App() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState({ hour: 9, minute: 0 });
   const [showFirstTimeNotificationModal, setShowFirstTimeNotificationModal] = useState(false);
+  const [notificationError, setNotificationError] = useState('');
+  const [showNotificationErrorModal, setShowNotificationErrorModal] = useState(false);
 
   // Close all modals
   const closeAllModals = () => {
@@ -459,9 +466,15 @@ function App() {
 
   const handleTestNotification = async () => {
     try {
+      console.log('Testing notification...');
       await notificationService.testNotification();
+      console.log('Test notification sent successfully');
     } catch (error) {
       console.error('Error testing notification:', error);
+      setNotificationError(
+        'Failed to send test notification. Please check your browser settings and ensure notifications are enabled.'
+      );
+      setShowNotificationErrorModal(true);
     }
   };
 
@@ -844,7 +857,18 @@ function App() {
                       </h6>
                     </div>
                     <div className="card-body">
-                      {!notificationsEnabled ? (
+                      {isIOS && !isStandalone ? (
+                        <div className="alert alert-info text-center">
+                          <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                          To receive notifications on iOS, please install this app to your Home
+                          Screen.
+                          <br />
+                          <small>
+                            Tap the Share button <FontAwesomeIcon icon={faShare} /> and choose
+                            &quot;Add to Home Screen&quot;.
+                          </small>
+                        </div>
+                      ) : !notificationsEnabled ? (
                         <div className="text-center">
                           <p className="text-muted mb-3">
                             Get daily reminders to complete your inventory
@@ -1043,59 +1067,73 @@ function App() {
                   </p>
                 </div>
 
-                <div className="card">
-                  <div className="card-body">
-                    <label className="form-label fw-bold">Set your preferred reminder time:</label>
-                    <div className="row">
-                      <div className="col-6">
-                        <select
-                          className="form-select"
-                          value={notificationTime.hour}
-                          onChange={(e) =>
-                            handleFirstTimeUpdateNotificationTime(
-                              parseInt(e.target.value),
-                              notificationTime.minute
-                            )
-                          }
-                        >
-                          {Array.from({ length: 24 }, (_, i) => (
-                            <option key={i} value={i}>
-                              {i === 0 ? '12' : i > 12 ? i - 12 : i} {i >= 12 ? 'PM' : 'AM'}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-6">
-                        <select
-                          className="form-select"
-                          value={notificationTime.minute}
-                          onChange={(e) =>
-                            handleFirstTimeUpdateNotificationTime(
-                              notificationTime.hour,
-                              parseInt(e.target.value)
-                            )
-                          }
-                        >
-                          {Array.from({ length: 60 }, (_, i) => (
-                            <option key={i} value={i}>
-                              {i.toString().padStart(2, '0')}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <small className="text-muted">
-                      You&apos;ll receive a daily reminder at{' '}
-                      {notificationTime.hour === 0
-                        ? '12'
-                        : notificationTime.hour > 12
-                          ? notificationTime.hour - 12
-                          : notificationTime.hour}
-                      :{notificationTime.minute.toString().padStart(2, '0')}{' '}
-                      {notificationTime.hour >= 12 ? 'PM' : 'AM'}
+                {isIOS && !isStandalone ? (
+                  <div className="alert alert-info text-center">
+                    <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                    To receive notifications on iOS, please install this app to your Home Screen.
+                    <br />
+                    <small>
+                      Tap the Share button <FontAwesomeIcon icon={faShare} /> and choose &quot;Add
+                      to Home Screen&quot;.
                     </small>
                   </div>
-                </div>
+                ) : (
+                  <div className="card">
+                    <div className="card-body">
+                      <label className="form-label fw-bold">
+                        Set your preferred reminder time:
+                      </label>
+                      <div className="row">
+                        <div className="col-6">
+                          <select
+                            className="form-select"
+                            value={notificationTime.hour}
+                            onChange={(e) =>
+                              handleFirstTimeUpdateNotificationTime(
+                                parseInt(e.target.value),
+                                notificationTime.minute
+                              )
+                            }
+                          >
+                            {Array.from({ length: 24 }, (_, i) => (
+                              <option key={i} value={i}>
+                                {i === 0 ? '12' : i > 12 ? i - 12 : i} {i >= 12 ? 'PM' : 'AM'}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-6">
+                          <select
+                            className="form-select"
+                            value={notificationTime.minute}
+                            onChange={(e) =>
+                              handleFirstTimeUpdateNotificationTime(
+                                notificationTime.hour,
+                                parseInt(e.target.value)
+                              )
+                            }
+                          >
+                            {Array.from({ length: 60 }, (_, i) => (
+                              <option key={i} value={i}>
+                                {i.toString().padStart(2, '0')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <small className="text-muted">
+                        You&apos;ll receive a daily reminder at{' '}
+                        {notificationTime.hour === 0
+                          ? '12'
+                          : notificationTime.hour > 12
+                            ? notificationTime.hour - 12
+                            : notificationTime.hour}
+                        :{notificationTime.minute.toString().padStart(2, '0')}{' '}
+                        {notificationTime.hour >= 12 ? 'PM' : 'AM'}
+                      </small>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="modal-footer">
                 <button
@@ -1105,13 +1143,49 @@ function App() {
                 >
                   Maybe Later
                 </button>
+                {!isIOS || isStandalone ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleFirstTimeEnableNotifications}
+                  >
+                    <FontAwesomeIcon icon={faBell} className="me-2" />
+                    Enable Daily Reminders
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Error Modal */}
+      {showNotificationErrorModal && (
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Notification Error</h5>
                 <button
                   type="button"
-                  className="btn btn-primary"
-                  onClick={handleFirstTimeEnableNotifications}
+                  className="btn-close"
+                  onClick={() => setShowNotificationErrorModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="alert alert-danger mb-0">{notificationError}</div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowNotificationErrorModal(false)}
                 >
-                  <FontAwesomeIcon icon={faBell} className="me-2" />
-                  Enable Daily Reminders
+                  Close
                 </button>
               </div>
             </div>
