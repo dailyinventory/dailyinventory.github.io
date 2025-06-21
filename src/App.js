@@ -14,6 +14,8 @@ import {
   faInfoCircle,
   faShare,
   faEllipsisV,
+  faBell,
+  faBellSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import $ from 'jquery';
 import 'jquery-ui/ui/widgets/datepicker';
@@ -21,6 +23,9 @@ import 'jquery-ui/dist/themes/base/jquery-ui.css';
 
 // Import custom styles
 import './assets/css/styles.css';
+
+// Import notification service
+import NotificationService from './assets/js/notificationService';
 
 // Extend dayjs with timezone support
 dayjs.extend(utc);
@@ -95,6 +100,11 @@ function App() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [allData, setAllData] = useState([]);
 
+  // Notification state
+  const [notificationService] = useState(() => new NotificationService());
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationTime, setNotificationTime] = useState({ hour: 9, minute: 0 });
+
   // Close all modals
   const closeAllModals = () => {
     setShowChartsModal(false);
@@ -137,6 +147,24 @@ function App() {
       gitCommitElement.textContent = process.env.GIT_COMMIT_HASH;
     }
   }, []);
+
+  // Initialize notification service
+  useEffect(() => {
+    const initNotifications = async () => {
+      const initialized = await notificationService.init();
+      if (initialized) {
+        setNotificationsEnabled(notificationService.isEnabled());
+
+        // Load saved notification time
+        const savedTime = notificationService.getNotificationTime();
+        if (savedTime) {
+          setNotificationTime(savedTime);
+        }
+      }
+    };
+
+    initNotifications();
+  }, [notificationService]);
 
   const isDateInPast = React.useCallback(
     (date) => {
@@ -361,6 +389,52 @@ function App() {
         },
       ],
     };
+  };
+
+  // Notification handlers
+  const handleEnableNotifications = async () => {
+    try {
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+        await notificationService.scheduleDailyNotification(
+          notificationTime.hour,
+          notificationTime.minute
+        );
+      }
+    } catch (error) {
+      console.error('Error enabling notifications:', error);
+    }
+  };
+
+  const handleDisableNotifications = async () => {
+    try {
+      await notificationService.cancelNotifications();
+      setNotificationsEnabled(false);
+    } catch (error) {
+      console.error('Error disabling notifications:', error);
+    }
+  };
+
+  const handleUpdateNotificationTime = async (hour, minute) => {
+    const newTime = { hour, minute };
+    setNotificationTime(newTime);
+
+    if (notificationsEnabled) {
+      try {
+        await notificationService.scheduleDailyNotification(hour, minute);
+      } catch (error) {
+        console.error('Error updating notification time:', error);
+      }
+    }
+  };
+
+  const handleTestNotification = async () => {
+    try {
+      await notificationService.testNotification();
+    } catch (error) {
+      console.error('Error testing notification:', error);
+    }
   };
 
   const remainingFields = getRemainingFields();
@@ -701,38 +775,133 @@ function App() {
               </div>
               <div className="modal-body">
                 <div className="d-grid gap-3">
-                  <button
-                    className="btn btn-primary"
-                    title="Export Data"
-                    onClick={exportData}
-                    disabled={!hasData}
-                  >
-                    <FontAwesomeIcon icon={faFileExport} className="me-2" />
-                    Export Data
-                  </button>
-                  <input
-                    type="file"
-                    accept=".json"
-                    style={{ display: 'none' }}
-                    onChange={importData}
-                    id="import-input"
-                  />
-                  <button
-                    className="btn btn-primary"
-                    title="Import Data"
-                    onClick={() => document.getElementById('import-input').click()}
-                  >
-                    <FontAwesomeIcon
-                      icon={faFileExport}
-                      style={{ transform: 'rotate(180deg)' }}
-                      className="me-2"
-                    />
-                    Import Data
-                  </button>
-                  <button className="btn btn-danger" onClick={() => setShowResetModal(true)}>
-                    <FontAwesomeIcon icon={faTrashAlt} className="me-2" />
-                    Reset All Data
-                  </button>
+                  {/* Notification Settings */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h6 className="mb-0">
+                        <FontAwesomeIcon
+                          icon={notificationsEnabled ? faBell : faBellSlash}
+                          className="me-2"
+                        />
+                        Daily Reminders
+                      </h6>
+                    </div>
+                    <div className="card-body">
+                      {!notificationsEnabled ? (
+                        <div className="text-center">
+                          <p className="text-muted mb-3">
+                            Get daily reminders to complete your inventory
+                          </p>
+                          <button className="btn btn-primary" onClick={handleEnableNotifications}>
+                            <FontAwesomeIcon icon={faBell} className="me-2" />
+                            Enable Notifications
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="mb-3">
+                            <label className="form-label">Reminder Time:</label>
+                            <div className="row">
+                              <div className="col-6">
+                                <select
+                                  className="form-select"
+                                  value={notificationTime.hour}
+                                  onChange={(e) =>
+                                    handleUpdateNotificationTime(
+                                      parseInt(e.target.value),
+                                      notificationTime.minute
+                                    )
+                                  }
+                                >
+                                  {Array.from({ length: 24 }, (_, i) => (
+                                    <option key={i} value={i}>
+                                      {i === 0 ? '12' : i > 12 ? i - 12 : i} {i >= 12 ? 'PM' : 'AM'}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="col-6">
+                                <select
+                                  className="form-select"
+                                  value={notificationTime.minute}
+                                  onChange={(e) =>
+                                    handleUpdateNotificationTime(
+                                      notificationTime.hour,
+                                      parseInt(e.target.value)
+                                    )
+                                  }
+                                >
+                                  {Array.from({ length: 60 }, (_, i) => (
+                                    <option key={i} value={i}>
+                                      {i.toString().padStart(2, '0')}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={handleTestNotification}
+                            >
+                              Test Notification
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={handleDisableNotifications}
+                            >
+                              <FontAwesomeIcon icon={faBellSlash} className="me-2" />
+                              Disable
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Data Management */}
+                  <div className="card">
+                    <div className="card-header">
+                      <h6 className="mb-0">Data Management</h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="d-grid gap-2">
+                        <button
+                          className="btn btn-primary"
+                          title="Export Data"
+                          onClick={exportData}
+                          disabled={!hasData}
+                        >
+                          <FontAwesomeIcon icon={faFileExport} className="me-2" />
+                          Export Data
+                        </button>
+                        <input
+                          type="file"
+                          accept=".json"
+                          style={{ display: 'none' }}
+                          onChange={importData}
+                          id="import-input"
+                        />
+                        <button
+                          className="btn btn-primary"
+                          title="Import Data"
+                          onClick={() => document.getElementById('import-input').click()}
+                        >
+                          <FontAwesomeIcon
+                            icon={faFileExport}
+                            style={{ transform: 'rotate(180deg)' }}
+                            className="me-2"
+                          />
+                          Import Data
+                        </button>
+                        <button className="btn btn-danger" onClick={() => setShowResetModal(true)}>
+                          <FontAwesomeIcon icon={faTrashAlt} className="me-2" />
+                          Reset All Data
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="modal-footer">
