@@ -177,7 +177,6 @@ class NotificationService {
     }
 
     const delay = scheduledTime.getTime() - now.getTime();
-
     // Schedule the notification
     setTimeout(() => {
       this.showNotification();
@@ -501,6 +500,55 @@ class NotificationService {
       console.error('Error sending push notification:', error);
       throw error;
     }
+  }
+
+  // Load and validate saved push subscription
+  async loadSavedPushSubscription() {
+    try {
+      const savedSubscription = localStorage.getItem('pushSubscription');
+      if (!savedSubscription) {
+        return null;
+      }
+
+      const subscription = JSON.parse(savedSubscription);
+      // Basic validation
+      if (!subscription || !subscription.endpoint) {
+        console.log('Invalid saved subscription, removing...');
+        localStorage.removeItem('pushSubscription');
+        return null;
+      }
+
+      // Check if the subscription is still valid with the service worker
+      if (this.registration) {
+        try {
+          const existingSubscription = await this.registration.pushManager.getSubscription();
+          if (existingSubscription && existingSubscription.endpoint === subscription.endpoint) {
+            this.pushSubscription = existingSubscription;
+            console.log('Valid push subscription restored');
+            return existingSubscription;
+          } else {
+            console.log('Saved subscription not found in service worker, removing...');
+            localStorage.removeItem('pushSubscription');
+            return null;
+          }
+        } catch (error) {
+          console.error('Error checking existing subscription:', error);
+          localStorage.removeItem('pushSubscription');
+          return null;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error loading saved push subscription:', error);
+      localStorage.removeItem('pushSubscription');
+      return null;
+    }
+  }
+
+  // Check if push notifications are enabled
+  isPushNotificationsEnabled() {
+    return !!this.pushSubscription || !!localStorage.getItem('pushSubscription');
   }
 }
 

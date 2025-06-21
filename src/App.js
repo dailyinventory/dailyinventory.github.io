@@ -176,7 +176,12 @@ function App() {
     const initNotifications = async () => {
       const initialized = await notificationService.init();
       if (initialized) {
-        setNotificationsEnabled(notificationService.isEnabled());
+        // Load persisted notification enabled state
+        const savedNotificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+        const isActuallyEnabled = notificationService.isEnabled();
+
+        // Set the state based on both localStorage and actual permission
+        setNotificationsEnabled(savedNotificationsEnabled && isActuallyEnabled);
 
         // Load saved notification time
         const savedTime = notificationService.getNotificationTime();
@@ -185,7 +190,7 @@ function App() {
         }
 
         // Check if push notifications are enabled
-        const savedPushSubscription = localStorage.getItem('pushSubscription');
+        const savedPushSubscription = await notificationService.loadSavedPushSubscription();
         setPushNotificationsEnabled(!!savedPushSubscription);
 
         // Detect Android
@@ -456,6 +461,8 @@ function App() {
       const granted = await notificationService.requestPermission();
       if (granted) {
         setNotificationsEnabled(true);
+        // Persist the notification enabled state
+        localStorage.setItem('notificationsEnabled', 'true');
         await notificationService.scheduleDailyNotification(
           notificationTime.hour,
           notificationTime.minute
@@ -474,6 +481,8 @@ function App() {
     try {
       await notificationService.cancelNotifications();
       setNotificationsEnabled(false);
+      // Persist the notification disabled state
+      localStorage.removeItem('notificationsEnabled');
     } catch (error) {
       console.error('Error disabling notifications:', error);
     }
@@ -545,6 +554,8 @@ function App() {
       console.log('Enabling push notifications...');
       await notificationService.subscribeToPushNotifications();
       setPushNotificationsEnabled(true);
+
+      // Store the subscription in localStorage (this is already done in the service)
       console.log('Push notifications enabled successfully');
     } catch (error) {
       console.error('Error enabling push notifications:', error);
@@ -558,6 +569,9 @@ function App() {
       console.log('Disabling push notifications...');
       await notificationService.unsubscribeFromPushNotifications();
       setPushNotificationsEnabled(false);
+
+      // The service already removes from localStorage, but let's make sure
+      localStorage.removeItem('pushSubscription');
       console.log('Push notifications disabled successfully');
     } catch (error) {
       console.error('Error disabling push notifications:', error);
@@ -610,6 +624,8 @@ function App() {
       const granted = await notificationService.requestPermission();
       if (granted) {
         setNotificationsEnabled(true);
+        // Persist the notification enabled state
+        localStorage.setItem('notificationsEnabled', 'true');
         await notificationService.scheduleDailyNotification(
           notificationTime.hour,
           notificationTime.minute
@@ -998,7 +1014,7 @@ function App() {
                             &quot;Add to Home Screen&quot;.
                           </small>
                         </div>
-                      ) : !notificationsEnabled ? (
+                      ) : !notificationsEnabled && Notification.permission !== 'granted' ? (
                         <div className="text-center">
                           <p className="text-muted mb-3">
                             Get daily reminders to complete your inventory
