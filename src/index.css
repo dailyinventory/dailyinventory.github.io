@@ -59,14 +59,14 @@ body {
 }
 
 .btn-primary {
-    background-color: #cfe2ff !important;
-    border-color: #cfe2ff !important;
-    color: #000 !important;
+    background-color: #0066cc !important;
+    border-color: #0066cc !important;
+    color: #fff !important;
 }
 
 .btn-primary:hover {
-    background-color: #b6d4fe !important;
-    border-color: #b6d4fe !important;
+    background-color: #0052a3 !important;
+    border-color: #0052a3 !important;
 }
 
 .alert-primary {
