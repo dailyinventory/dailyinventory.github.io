@@ -26,6 +26,20 @@ module.exports = {
       const isGitHubPages = process.env.GITHUB_PAGES === 'true' || process.env.NODE_ENV === 'production';
       webpackConfig.output.publicPath = isGitHubPages ? '/dailyinventory.github.io/' : '/';
       
+      // Customize the output path for JS files
+      webpackConfig.output.filename = 'static/js/[name].[contenthash:8].js';
+      webpackConfig.output.chunkFilename = 'static/js/[name].[contenthash:8].chunk.js';
+      
+      // Find and modify the MiniCssExtractPlugin configuration
+      const miniCssExtractPlugin = webpackConfig.plugins.find(
+        plugin => plugin.constructor.name === 'MiniCssExtractPlugin'
+      );
+      
+      if (miniCssExtractPlugin) {
+        miniCssExtractPlugin.options.filename = 'static/css/[name].[contenthash:8].css';
+        miniCssExtractPlugin.options.chunkFilename = 'static/css/[name].[contenthash:8].chunk.css';
+      }
+
       // Add a custom plugin to inject git commit hash
       const { DefinePlugin } = require('webpack');
       webpackConfig.plugins.push(

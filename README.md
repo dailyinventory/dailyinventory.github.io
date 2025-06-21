@@ -30,7 +30,7 @@ A Progressive Web Application for tracking daily personal inventory and spiritua
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/dailyinventory.github.io.git
+git clone https://github.com/dailyinventory/dailyinventory.github.io.git
 cd dailyinventory.github.io
 ```
 
