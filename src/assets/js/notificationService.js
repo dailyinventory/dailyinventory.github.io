@@ -3,6 +3,9 @@ class NotificationService {
     this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
     this.permission = this.isSupported ? Notification.permission : 'denied';
     this.registration = null;
+    this.isFirefox = navigator.userAgent.includes('Firefox');
+    this.isSecure =
+      window.location.protocol === 'https:' || window.location.hostname === 'localhost';
   }
 
   // Initialize the service
@@ -12,17 +15,34 @@ class NotificationService {
       return false;
     }
 
+    // Firefox requires HTTPS for notifications
+    if (this.isFirefox && !this.isSecure) {
+      console.warn('Firefox requires HTTPS for notifications');
+      return false;
+    }
+
     try {
-      // Register service worker
-      this.registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered:', this.registration);
+      // Check if service worker is already registered
+      const existingRegistration = await navigator.serviceWorker.getRegistration('/sw.js');
+
+      if (existingRegistration) {
+        this.registration = existingRegistration;
+        console.log('Service Worker already registered:', this.registration);
+      } else {
+        // Register service worker
+        this.registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('Service Worker registered:', this.registration);
+      }
 
       // Wait for the service worker to be ready
       if (this.registration.installing) {
         console.log('Service worker installing...');
         await new Promise((resolve) => {
           this.registration.installing.addEventListener('statechange', () => {
-            if (this.registration.installing.state === 'installed') {
+            if (
+              this.registration.installing &&
+              this.registration.installing.state === 'installed'
+            ) {
               resolve();
             }
           });
@@ -34,7 +54,7 @@ class NotificationService {
         console.log('Service worker waiting...');
         await new Promise((resolve) => {
           this.registration.waiting.addEventListener('statechange', () => {
-            if (this.registration.waiting.state === 'activated') {
+            if (this.registration.waiting && this.registration.waiting.state === 'activated') {
               resolve();
             }
           });
@@ -44,9 +64,14 @@ class NotificationService {
       // Ensure we have an active service worker
       if (!this.registration.active) {
         console.log('Waiting for service worker to activate...');
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Service worker activation timeout'));
+          }, 10000); // 10 second timeout
+
           const checkActive = () => {
             if (this.registration.active) {
+              clearTimeout(timeout);
               resolve();
             } else {
               setTimeout(checkActive, 100);
@@ -83,6 +108,41 @@ class NotificationService {
   // Check if notifications are enabled
   isEnabled() {
     return this.isSupported && this.permission === 'granted';
+  }
+
+  // Check if the current environment supports notifications
+  isEnvironmentSupported() {
+    if (!this.isSupported) {
+      return false;
+    }
+
+    // Firefox requires HTTPS for notifications
+    if (this.isFirefox && !this.isSecure) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // Get browser-specific notification status
+  getNotificationStatus() {
+    if (!this.isSupported) {
+      return 'not-supported';
+    }
+
+    if (this.isFirefox && !this.isSecure) {
+      return 'firefox-https-required';
+    }
+
+    if (this.permission === 'denied') {
+      return 'permission-denied';
+    }
+
+    if (this.permission === 'default') {
+      return 'permission-not-requested';
+    }
+
+    return 'enabled';
   }
 
   // Schedule a daily notification
@@ -133,6 +193,12 @@ class NotificationService {
       return;
     }
 
+    // Firefox requires HTTPS for notifications
+    if (this.isFirefox && !this.isSecure) {
+      console.warn('Firefox requires HTTPS for notifications');
+      return;
+    }
+
     try {
       // Ensure service worker is ready
       if (!this.registration || !this.registration.active) {
@@ -145,13 +211,18 @@ class NotificationService {
         throw new Error('Service worker not available');
       }
 
-      await this.registration.showNotification(title, {
+      // Create notification options based on browser support
+      const notificationOptions = {
         body,
         icon: '/assets/images/icons/favicon-192x192.png',
         badge: '/assets/images/icons/favicon-32x32.png',
-        vibrate: [200, 100, 200],
         requireInteraction: false,
-        actions: [
+      };
+
+      // Add features that Firefox may not support
+      if (!this.isFirefox) {
+        notificationOptions.vibrate = [200, 100, 200];
+        notificationOptions.actions = [
           {
             action: 'open',
             title: 'Open App',
@@ -162,18 +233,22 @@ class NotificationService {
             title: 'Dismiss',
             icon: '/assets/images/icons/favicon-32x32.png',
           },
-        ],
-      });
+        ];
+      }
+
+      await this.registration.showNotification(title, notificationOptions);
     } catch (error) {
       console.error('Error showing notification:', error);
 
       // Fallback to browser notification if service worker fails
       if (Notification.permission === 'granted') {
         try {
-          new Notification(title, {
+          const fallbackOptions = {
             body,
             icon: '/assets/images/icons/favicon-192x192.png',
-          });
+          };
+
+          new Notification(title, fallbackOptions);
         } catch (fallbackError) {
           console.error('Fallback notification also failed:', fallbackError);
         }
@@ -207,20 +282,83 @@ class NotificationService {
 
   // Test notification
   async testNotification() {
+    console.log('=== Notification Debug Info ===');
+    console.log('isSupported:', this.isSupported);
+    console.log('permission:', this.permission);
+    console.log('isFirefox:', this.isFirefox);
+    console.log('isSecure:', this.isSecure);
+    console.log('isEnvironmentSupported:', this.isEnvironmentSupported());
+    console.log('isEnabled:', this.isEnabled());
+    console.log('registration:', this.registration);
+    console.log('service worker ready:', this.isServiceWorkerReady());
+    console.log('==============================');
+
     if (!this.isEnabled()) {
+      console.error('Notifications not enabled. Permission:', this.permission);
       throw new Error('Notifications not enabled');
+    }
+
+    if (!this.isEnvironmentSupported()) {
+      const status = this.getNotificationStatus();
+      console.error('Environment not supported. Status:', status);
+      throw new Error(`Environment not supported: ${status}`);
     }
 
     // Ensure service worker is ready before testing
     if (!this.isServiceWorkerReady()) {
       console.log('Service worker not ready, initializing...');
-      await this.init();
+      const initialized = await this.init();
+      if (!initialized) {
+        throw new Error('Failed to initialize service worker');
+      }
     }
 
+    console.log('Attempting to show notification...');
     await this.showNotification(
       'Test Notification',
       'This is a test notification from Daily Inventory!'
     );
+    console.log('Notification request completed');
+  }
+
+  // Simple browser notification (no service worker required)
+  async showSimpleNotification(
+    title = 'Daily Inventory Reminder',
+    body = 'Time to complete your daily inventory!'
+  ) {
+    console.log('=== Simple Notification Debug ===');
+    console.log('Notification permission:', Notification.permission);
+    console.log('Notification supported:', 'Notification' in window);
+    console.log('===============================');
+
+    if (!('Notification' in window)) {
+      throw new Error('Notifications not supported in this browser');
+    }
+
+    if (Notification.permission === 'denied') {
+      throw new Error('Notification permission denied');
+    }
+
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission not granted');
+      }
+    }
+
+    // Firefox requires HTTPS for notifications
+    if (this.isFirefox && !this.isSecure) {
+      throw new Error('Firefox requires HTTPS for notifications');
+    }
+
+    console.log('Showing simple browser notification...');
+    const notification = new Notification(title, {
+      body,
+      icon: '/assets/images/icons/favicon-192x192.png',
+    });
+
+    console.log('Simple notification created:', notification);
+    return notification;
   }
 }
 

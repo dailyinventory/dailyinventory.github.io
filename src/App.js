@@ -429,6 +429,20 @@ function App() {
   // Notification handlers
   const handleEnableNotifications = async () => {
     try {
+      // Check if environment supports notifications
+      if (!notificationService.isEnvironmentSupported()) {
+        const status = notificationService.getNotificationStatus();
+        if (status === 'firefox-https-required') {
+          setNotificationError(
+            'Firefox requires HTTPS for notifications. Please access this app via HTTPS or use a different browser.'
+          );
+        } else {
+          setNotificationError('Notifications are not supported in this environment.');
+        }
+        setShowNotificationErrorModal(true);
+        return;
+      }
+
       const granted = await notificationService.requestPermission();
       if (granted) {
         setNotificationsEnabled(true);
@@ -439,6 +453,10 @@ function App() {
       }
     } catch (error) {
       console.error('Error enabling notifications:', error);
+      setNotificationError(
+        'Failed to enable notifications. Please check your browser settings and try again.'
+      );
+      setShowNotificationErrorModal(true);
     }
   };
 
@@ -467,6 +485,21 @@ function App() {
   const handleTestNotification = async () => {
     try {
       console.log('Testing notification...');
+
+      // Check if environment supports notifications
+      if (!notificationService.isEnvironmentSupported()) {
+        const status = notificationService.getNotificationStatus();
+        if (status === 'firefox-https-required') {
+          setNotificationError(
+            'Firefox requires HTTPS for notifications. Please access this app via HTTPS or use a different browser.'
+          );
+        } else {
+          setNotificationError('Notifications are not supported in this environment.');
+        }
+        setShowNotificationErrorModal(true);
+        return;
+      }
+
       await notificationService.testNotification();
       console.log('Test notification sent successfully');
     } catch (error) {
@@ -478,9 +511,41 @@ function App() {
     }
   };
 
+  // Simple notification test (no service worker required)
+  const handleSimpleTestNotification = async () => {
+    try {
+      console.log('Testing simple notification...');
+      await notificationService.showSimpleNotification(
+        'Simple Test',
+        'This is a simple browser notification test!'
+      );
+      console.log('Simple test notification sent successfully');
+    } catch (error) {
+      console.error('Error testing simple notification:', error);
+      setNotificationError(
+        `Simple notification failed: ${error.message}. Please check your browser settings.`
+      );
+      setShowNotificationErrorModal(true);
+    }
+  };
+
   // First-time notification modal handlers
   const handleFirstTimeEnableNotifications = async () => {
     try {
+      // Check if environment supports notifications
+      if (!notificationService.isEnvironmentSupported()) {
+        const status = notificationService.getNotificationStatus();
+        if (status === 'firefox-https-required') {
+          setNotificationError(
+            'Firefox requires HTTPS for notifications. Please access this app via HTTPS or use a different browser.'
+          );
+        } else {
+          setNotificationError('Notifications are not supported in this environment.');
+        }
+        setShowNotificationErrorModal(true);
+        return;
+      }
+
       const granted = await notificationService.requestPermission();
       if (granted) {
         setNotificationsEnabled(true);
@@ -494,6 +559,10 @@ function App() {
       setShowFirstTimeNotificationModal(false);
     } catch (error) {
       console.error('Error enabling notifications:', error);
+      setNotificationError(
+        'Failed to enable notifications. Please check your browser settings and try again.'
+      );
+      setShowNotificationErrorModal(true);
     }
   };
 
@@ -927,6 +996,12 @@ function App() {
                               onClick={handleTestNotification}
                             >
                               Test Notification
+                            </button>
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={handleSimpleTestNotification}
+                            >
+                              Simple Test
                             </button>
                             <button
                               className="btn btn-outline-danger btn-sm"
