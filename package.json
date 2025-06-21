@@ -1,11 +1,12 @@
 {
   "name": "dailyinventory",
   "version": "1.0.0",
-  "description": "Daily Inventory Management System",
+  "description": "Tracking daily personal inventory and spiritual growth",
   "main": "index.js",
+  "homepage": "https://dailyinventory.github.io",
   "scripts": {
     "start": "craco start",
-    "build": "BUILD_PATH=dist craco build",
+    "build": "echo 'Starting build process...' && ls -la public/ && BUILD_PATH=dist craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "clean": "rimraf dist",
