@@ -21,18 +21,14 @@ module.exports = {
         miniCssExtractPlugin.options.filename = 'assets/css/[name].[contenthash:8].css';
         miniCssExtractPlugin.options.chunkFilename = 'assets/css/[name].[contenthash:8].chunk.css';
       }
-      
-      // Find and modify the HtmlWebpackPlugin to inject git commit hash
-      const htmlWebpackPlugin = webpackConfig.plugins.find(
-        plugin => plugin.constructor.name === 'HtmlWebpackPlugin'
+
+      // Add a custom plugin to inject git commit hash
+      const { DefinePlugin } = require('webpack');
+      webpackConfig.plugins.push(
+        new DefinePlugin({
+          'process.env.GIT_COMMIT_HASH': JSON.stringify(gitRevSync.short())
+        })
       );
-      
-      if (htmlWebpackPlugin) {
-        // Set the template parameters
-        htmlWebpackPlugin.options.templateParameters = {
-          gitCommitHash: gitRevSync.short()
-        };
-      }
       
       return webpackConfig;
     },

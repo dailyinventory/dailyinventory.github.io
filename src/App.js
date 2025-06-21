@@ -127,6 +127,14 @@ function App() {
     };
   }, [showChartsModal, showSettingsModal, showInstallModal, showResetModal]);
 
+  // Inject git commit hash
+  useEffect(() => {
+    const gitCommitElement = document.getElementById('git-commit-hash');
+    if (gitCommitElement && process.env.GIT_COMMIT_HASH) {
+      gitCommitElement.textContent = process.env.GIT_COMMIT_HASH;
+    }
+  }, []);
+
   const isDateInPast = React.useCallback(
     (date) => {
       return (
