@@ -114,6 +114,8 @@ function App() {
   const [showNotificationErrorModal, setShowNotificationErrorModal] = useState(false);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   // Close all modals
   const closeAllModals = () => {
@@ -201,6 +203,37 @@ function App() {
 
     initNotifications();
   }, [notificationService]);
+
+  // PWA Install Prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      setDeferredPrompt(e);
+      // Show the install button
+      setShowInstallButton(true);
+    };
+
+    const handleAppInstalled = () => {
+      // Hide the install button after successful installation
+      setShowInstallButton(false);
+      setDeferredPrompt(null);
+      console.log('PWA was installed');
+    };
+
+    // Listen for the beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Listen for successful installation
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
   // Check if this is the user's first time and show notification prompt
   useEffect(() => {
@@ -653,6 +686,30 @@ function App() {
     setNotificationTime({ hour, minute });
   };
 
+  // PWA Install handler
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) {
+      console.log('No install prompt available');
+      return;
+    }
+
+    try {
+      // Show the install prompt
+      deferredPrompt.prompt();
+
+      // Wait for the user to respond to the prompt
+      const { outcome } = await deferredPrompt.userChoice;
+
+      console.log(`User response to the install prompt: ${outcome}`);
+
+      // Clear the deferredPrompt
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+    } catch (error) {
+      console.error('Error during PWA installation:', error);
+    }
+  };
+
   const remainingFields = getRemainingFields();
   const hasData = allData.length > 0;
 
@@ -771,17 +828,30 @@ function App() {
       </div>
 
       {/* Install App Button */}
-      <div className="row mt-4">
-        <div className="text-center mt-3">
-          <button
-            type="button"
-            className="btn btn-success btn-lg"
-            onClick={() => setShowInstallModal(true)}
-          >
-            <FontAwesomeIcon icon={faMobileAlt} /> Install App
-          </button>
+      {showInstallButton && (
+        <div className="row mt-4">
+          <div className="text-center mt-3">
+            <button type="button" className="btn btn-success btn-lg" onClick={handleInstallPWA}>
+              <FontAwesomeIcon icon={faMobileAlt} /> Install App
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Manual Install Instructions Button (when PWA install is not available) */}
+      {!showInstallButton && !isStandalone && (
+        <div className="row mt-4">
+          <div className="text-center mt-3">
+            <button
+              type="button"
+              className="btn btn-outline-success btn-lg"
+              onClick={() => setShowInstallModal(true)}
+            >
+              <FontAwesomeIcon icon={faMobileAlt} /> Install Instructions
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Charts Modal */}
       {showChartsModal && (
