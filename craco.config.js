@@ -22,9 +22,8 @@ module.exports = {
       // Set output directory to 'dist'
       webpackConfig.output.path = path.resolve(__dirname, 'dist');
       
-      // Set public path for GitHub Pages
-      const isGitHubPages = process.env.GITHUB_PAGES === 'true' || process.env.NODE_ENV === 'production';
-      webpackConfig.output.publicPath = isGitHubPages ? '/dailyinventory.github.io/' : '/';
+      // Set public path for GitHub Pages user/organization site
+      webpackConfig.output.publicPath = '/';
       
       // Customize the output path for JS files
       webpackConfig.output.filename = 'static/js/[name].[contenthash:8].js';

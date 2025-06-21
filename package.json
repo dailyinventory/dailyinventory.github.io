@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Tracking daily personal inventory and spiritual growth",
   "main": "index.js",
-  "homepage": "https://dailyinventory.github.io",
+  "homepage": "https://dailyinventory.github.io/",
   "scripts": {
     "start": "craco start",
     "build": "echo 'Starting build process...' && ls -la public/ && BUILD_PATH=dist craco build",
