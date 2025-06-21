@@ -1,0 +1,110 @@
+html, body { 
+    touch-action: none; 
+}
+
+body { 
+    font-family: Arial, sans-serif; 
+}
+
+.table th,
+.table td {
+    text-align: center;
+    cursor: pointer;
+    padding: 15px;
+    border: 2px solid black !important;
+    font-size: 1rem;
+    line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.table {
+    border: 2px solid black !important;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.table-dark th { 
+    color: black; 
+}
+
+.clickable { 
+    cursor: pointer; 
+}
+
+.selected-left { 
+    background-color: #ffe69c !important;
+}
+
+.selected-right { 
+    background-color: #a3cfbb !important;
+}
+
+.disabled { 
+    pointer-events: none; 
+    opacity: 0.5; 
+}
+
+.modal-content { 
+    padding: 15px; 
+}
+
+#date-picker { 
+    display: none; 
+}
+
+.counter { 
+    margin-top: 20px; 
+    font-size: 18px; 
+}
+
+.btn-primary {
+    background-color: #cfe2ff !important;
+    border-color: #cfe2ff !important;
+    color: #000 !important;
+}
+
+.btn-primary:hover {
+    background-color: #b6d4fe !important;
+    border-color: #b6d4fe !important;
+}
+
+.alert-primary {
+    background-color: #9EC5FE !important;
+    border-color: #9EC5FE !important;
+    color: #000 !important;
+}
+
+.table-inventory-header {
+    background-color: #9EC5FE !important;
+    border-color: #9EC5FE !important;
+    color: #000 !important;
+}
+
+@media (max-width: 450px) {
+    .table th,
+    .table td {
+        padding: 12px 12px;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    .table th { 
+        font-size: 0.85rem; 
+    }
+
+    .table th:nth-child(1),
+    .table td:nth-child(1) { 
+        width: 40%; 
+    }
+    
+    .table th:nth-child(2),
+    .table td:nth-child(2) { 
+        width: 20%; 
+    }
+    
+    .table th:nth-child(3),
+    .table td:nth-child(3) { 
+        width: 40%; 
+    }
+} 

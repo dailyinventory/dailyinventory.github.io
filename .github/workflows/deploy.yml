@@ -28,12 +28,17 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          GITHUB_PAGES: 'true'
+          CI: false
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './build'
+          exclude: |
+            package.json
+            package-lock.json
+            .gitignore
+            README.md
 
   deploy:
     needs: build
