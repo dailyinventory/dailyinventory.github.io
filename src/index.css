@@ -107,4 +107,198 @@ body {
     .table td:nth-child(3) { 
         width: 40%; 
     }
+}
+
+.ui-datepicker {
+    background-color: #fff;
+    border: 2px solid black !important;
+    border-radius: 0;
+    padding: 10px;
+    width: 300px;
+    font-family: Arial, sans-serif;
+}
+
+.ui-datepicker .ui-datepicker-header {
+    background-color: #9EC5FE;
+    border: none;
+    color: #000;
+    padding: 5px;
+    text-align: center;
+}
+
+.ui-datepicker .ui-datepicker-title {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.ui-datepicker .ui-datepicker-prev,
+.ui-datepicker .ui-datepicker-next {
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    width: 30px;
+    height: 30px;
+    text-indent: -9999px;
+    border: none !important;
+    background: none;
+    outline: none;
+}
+
+.ui-datepicker .ui-datepicker-prev {
+    left: 5px;
+}
+
+.ui-datepicker .ui-datepicker-next {
+    right: 5px;
+}
+
+.ui-datepicker .ui-datepicker-prev:after {
+    content: "←";
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+    color: white;
+}
+
+.ui-datepicker .ui-datepicker-next:after {
+    content: "→";
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+    color: white;
+}
+
+/* Remove hover background from navigation arrows */
+.ui-datepicker .ui-datepicker-prev:hover,
+.ui-datepicker .ui-datepicker-next:hover {
+    background: none !important;
+}
+
+.ui-datepicker .ui-datepicker-prev.ui-state-hover,
+.ui-datepicker .ui-datepicker-next.ui-state-hover {
+    background: none !important;
+}
+
+.ui-datepicker table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+}
+
+.ui-datepicker th {
+    padding: 5px;
+    text-align: center;
+    font-weight: bold;
+    border: none;
+    color: #003366;
+}
+
+.ui-datepicker td {
+    padding: 2px;
+    text-align: center;
+    border: none;
+    vertical-align: middle;
+}
+
+.ui-datepicker td span,
+.ui-datepicker td a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 5px;
+    text-align: center !important;
+    text-decoration: none;
+    color: #0066cc !important;
+    border: 1px solid transparent;
+    min-height: 25px;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: bold;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.ui-datepicker td a:hover {
+    background-color: #9EC5FE;
+    border: 1px solid black;
+}
+
+.ui-datepicker .ui-state-active {
+    background-color: #a3cfbb !important;
+    border: 1px solid black !important;
+    color: #0066cc !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+}
+
+.ui-datepicker .ui-state-disabled {
+    opacity: 0.35;
+}
+
+/* Today Button Styling */
+.ui-datepicker .ui-datepicker-buttonpane {
+    border-top: 1px solid #ddd;
+    margin-top: 5px;
+    padding-top: 5px;
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button {
+    background-color: #0066cc;
+    border: 1px solid black;
+    color: #fff;
+    padding: 8px 0;
+    margin: 0;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    border-radius: 0;
+    display: block;
+    float: none;
+    clear: both;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button:hover {
+    background-color: #0052a3;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button.ui-state-hover {
+    background-color: #0052a3;
+    border-color: black;
+}
+
+/* Hide the Done button */
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-close {
+    display: none;
+}
+
+/* Fix current date button float */
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current {
+    float: none !important;
+    width: 100% !important;
+}
+
+/* Hide jQuery UI icons */
+.ui-icon {
+    display: none !important;
+}
+
+.ui-icon-circle-triangle-w,
+.ui-icon-circle-triangle-e {
+    display: none !important;
 } 

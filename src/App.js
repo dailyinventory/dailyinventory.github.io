@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -15,6 +15,9 @@ import {
   faShare,
   faEllipsisV
 } from '@fortawesome/free-solid-svg-icons';
+import $ from 'jquery';
+import 'jquery-ui/ui/widgets/datepicker';
+import 'jquery-ui/dist/themes/base/jquery-ui.css';
 
 // Extend dayjs with timezone support
 dayjs.extend(utc);
@@ -78,6 +81,7 @@ function App() {
   // Get timezone from browser's Intl API first, then fallback to Day.js guess
   const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const userTimezone = browserTimezone || dayjs.tz.guess();
+  const dateInputRef = useRef(null);
 
   // State
   const [currentDate, setCurrentDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -87,6 +91,111 @@ function App() {
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [allData, setAllData] = useState([]);
+
+  // Close all modals
+  const closeAllModals = () => {
+    setShowChartsModal(false);
+    setShowSettingsModal(false);
+    setShowInstallModal(false);
+    setShowResetModal(false);
+  };
+
+  // Handle escape key and outside clicks
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        closeAllModals();
+      }
+    };
+
+    const handleOutsideClick = (event) => {
+      if (event.target.classList.contains('modal')) {
+        closeAllModals();
+      }
+    };
+
+    // Add event listeners if any modal is open
+    if (showChartsModal || showSettingsModal || showInstallModal || showResetModal) {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('click', handleOutsideClick);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [showChartsModal, showSettingsModal, showInstallModal, showResetModal]);
+
+  // Initialize jQuery UI Datepicker
+  useEffect(() => {
+    if (dateInputRef.current) {
+      $(dateInputRef.current).datepicker({
+        dateFormat: 'MM dd, yy',
+        maxDate: 0,
+        showButtonPanel: true,
+        onSelect: function(dateText, inst) {
+          const selectedDate = dayjs(dateText, 'MM DD, YYYY').format('YYYY-MM-DD');
+          if (isDateInPast(selectedDate)) {
+            setCurrentDate(selectedDate);
+          }
+        },
+        beforeShow: function(input, inst) {
+          // Position the datepicker properly
+          setTimeout(function() {
+            const inputOffset = $(input).offset();
+            const inputWidth = $(input).outerWidth();
+            const calendarWidth = 300; // Width of the calendar
+            const leftPosition = inputOffset.left + (inputWidth / 2) - (calendarWidth / 2);
+            
+            inst.dpDiv.css({
+              top: inputOffset.top + $(input).outerHeight(),
+              left: leftPosition
+            });
+          }, 0);
+        }
+      });
+
+      // Use mutation observer to detect Today button clicks
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'childList') {
+            const todayButton = document.querySelector('.ui-datepicker-current');
+            if (todayButton && !todayButton.dataset.listenerAdded) {
+              todayButton.dataset.listenerAdded = 'true';
+              todayButton.addEventListener('click', function() {
+                setTimeout(() => {
+                  const today = dayjs().format('YYYY-MM-DD');
+                  setCurrentDate(today);
+                }, 50);
+              });
+            }
+          }
+        });
+      });
+
+      // Start observing
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      // Store observer for cleanup
+      window.datepickerObserver = observer;
+    }
+
+    // Cleanup
+    return () => {
+      if (dateInputRef.current) {
+        $(dateInputRef.current).datepicker('destroy');
+      }
+      // Cleanup observer
+      if (window.datepickerObserver) {
+        window.datepickerObserver.disconnect();
+        delete window.datepickerObserver;
+      }
+    };
+  }, []);
 
   // Helper Functions
   const formatDateForDisplay = (date) => {
@@ -106,10 +215,17 @@ function App() {
   useEffect(() => {
     const savedData = JSON.parse(localStorage.getItem('dailyInventory') || '[]');
     setAllData(savedData);
-    loadFromLocalStorage(currentDate, savedData);
+    
+    // Load selections for current date
+    const entry = savedData.find(obj => obj[currentDate]);
+    if (entry) {
+      setSelections(entry[currentDate]);
+    } else {
+      setSelections(Array(inventoryData.length).fill(null));
+    }
   }, [currentDate]);
 
-  const loadFromLocalStorage = (date, data = allData) => {
+  const loadFromLocalStorage = (date, data) => {
     const entry = data.find(obj => obj[date]);
     if (entry) {
       setSelections(entry[date]);
@@ -145,10 +261,11 @@ function App() {
     newSelections[index] = value;
     setSelections(newSelections);
     
-    // Auto-save after a short delay
-    setTimeout(() => {
-      saveToLocalStorage();
-    }, 100);
+    // Save immediately with the new selections
+    const updated = allData.filter(obj => !obj[currentDate]);
+    const newData = [...updated, { [currentDate]: newSelections }];
+    setAllData(newData);
+    localStorage.setItem('dailyInventory', JSON.stringify(newData));
   };
 
   // Calculate remaining fields
@@ -260,11 +377,12 @@ function App() {
             &#8592;
           </button>
           <input 
+            ref={dateInputRef}
             type="text" 
-            className="h3 border-0 bg-transparent text-center" 
-            style={{ width: 'auto' }} 
             value={formatDateForDisplay(currentDate)}
             readOnly
+            className="h3 border-0 bg-transparent text-center"
+            style={{ width: 'auto', cursor: 'pointer' }}
           />
           <button 
             className="btn btn-primary ms-2" 
