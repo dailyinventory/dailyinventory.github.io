@@ -16,6 +16,7 @@ A Progressive Web Application for tracking daily personal inventory and spiritua
 
 ## Tech Stack
 
+- React 18
 - HTML5
 - CSS3
 - JavaScript (ES6+)
@@ -23,7 +24,7 @@ A Progressive Web Application for tracking daily personal inventory and spiritua
 - Chart.js
 - Day.js
 - jQuery & jQuery UI
-- Webpack 5
+- CRACO (Create React App Configuration Override)
 - Babel
 
 ## Development Setup
@@ -58,19 +59,26 @@ npm run build
 
 ```
 dailyinventory.github.io/
-├── assets/
-│   ├── css/
-│   │   ├── styles.css
-│   │   └── jquery-ui.css
-│   ├── js/
-│   │   ├── script.js
-│   └── images/
-│       └── icons/
+├── public/
+│   ├── index.html
+│   ├── manifest.json
+│   └── assets/
+│       └── images/
+│           └── icons/   # Favicons and app icons
+├── src/
+│   ├── App.js
+│   ├── index.js
+│   └── assets/
+│       ├── css/
+│       │   ├── styles.css
+│       │   └── jquery-ui.css
+│       ├── js/
+│       │   ├── script.js
+│       │   └── dayjs-init.js
+│       └── images/
 ├── dist/           # Production build output
-├── index.html
-├── manifest.json
 ├── package.json
-├── webpack.config.js
+├── craco.config.js
 ├── postcss.config.js
 ├── generate-favicon.js
 └── README.md
@@ -104,7 +112,7 @@ dailyinventory.github.io/
 ```bash
 npm start
 ```
-This starts the webpack dev server on port 8080 with hot reloading.
+This starts the development server with hot reloading.
 
 2. Production Build:
 ```bash
@@ -117,6 +125,10 @@ This creates an optimized production build in the `dist` directory.
 npm run clean && npm run build
 ```
 This removes the dist directory and creates a fresh production build.
+
+4. **Deploy to GitHub Pages:**
+   - Push to the `main` branch. GitHub Actions will build and deploy the `dist` folder automatically.
+   - The site will be available at: https://dailyinventory.github.io/
 
 ## Browser Support
 

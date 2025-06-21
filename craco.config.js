@@ -26,8 +26,8 @@ module.exports = {
       webpackConfig.output.publicPath = '/';
       
       // Customize the output path for JS files
-      webpackConfig.output.filename = 'static/js/[name].[contenthash:8].js';
-      webpackConfig.output.chunkFilename = 'static/js/[name].[contenthash:8].chunk.js';
+      webpackConfig.output.filename = 'assets/js/[name].[contenthash:8].js';
+      webpackConfig.output.chunkFilename = 'assets/js/[name].[contenthash:8].chunk.js';
       
       // Find and modify the MiniCssExtractPlugin configuration
       const miniCssExtractPlugin = webpackConfig.plugins.find(
@@ -35,8 +35,8 @@ module.exports = {
       );
       
       if (miniCssExtractPlugin) {
-        miniCssExtractPlugin.options.filename = 'static/css/[name].[contenthash:8].css';
-        miniCssExtractPlugin.options.chunkFilename = 'static/css/[name].[contenthash:8].chunk.css';
+        miniCssExtractPlugin.options.filename = 'assets/css/[name].[contenthash:8].css';
+        miniCssExtractPlugin.options.chunkFilename = 'assets/css/[name].[contenthash:8].chunk.css';
       }
 
       // Add a custom plugin to inject git commit hash
