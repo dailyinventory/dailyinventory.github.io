@@ -6,6 +6,8 @@ class NotificationService {
     this.isFirefox = navigator.userAgent.includes('Firefox');
     this.isSecure =
       window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+    this.pushSubscription = null;
+    this.firebaseMessaging = null;
   }
 
   // Initialize the service
@@ -359,6 +361,146 @@ class NotificationService {
 
     console.log('Simple notification created:', notification);
     return notification;
+  }
+
+  // Initialize Firebase (call this before other Firebase methods)
+  async initializeFirebase(firebaseConfig) {
+    try {
+      // Load Firebase SDK dynamically
+      if (!window.firebase) {
+        await this.loadFirebaseSDK();
+      }
+
+      // Initialize Firebase
+      if (!window.firebase.apps.length) {
+        window.firebase.initializeApp(firebaseConfig);
+      }
+
+      // Initialize Firebase Messaging
+      this.firebaseMessaging = window.firebase.messaging();
+
+      console.log('Firebase initialized successfully');
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize Firebase:', error);
+      return false;
+    }
+  }
+
+  // Load Firebase SDK dynamically
+  async loadFirebaseSDK() {
+    return new Promise((resolve, reject) => {
+      // Load Firebase App
+      const appScript = document.createElement('script');
+      appScript.src = 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+      appScript.onload = () => {
+        // Load Firebase Messaging
+        const messagingScript = document.createElement('script');
+        messagingScript.src = 'https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging.js';
+        messagingScript.onload = resolve;
+        messagingScript.onerror = reject;
+        document.head.appendChild(messagingScript);
+      };
+      appScript.onerror = reject;
+      document.head.appendChild(appScript);
+    });
+  }
+
+  // Subscribe to push notifications
+  async subscribeToPushNotifications() {
+    if (!this.isEnvironmentSupported()) {
+      throw new Error('Environment not supported for push notifications');
+    }
+
+    try {
+      // Ensure service worker is ready
+      if (!this.isServiceWorkerReady()) {
+        await this.init();
+      }
+
+      // Request notification permission if not granted
+      if (this.permission !== 'granted') {
+        const granted = await this.requestPermission();
+        if (!granted) {
+          throw new Error('Notification permission not granted');
+        }
+      }
+
+      // Subscribe to push notifications
+      this.pushSubscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlBase64ToUint8Array(this.getVapidPublicKey()),
+      });
+
+      console.log('Push subscription created:', this.pushSubscription);
+
+      // Store subscription for later use
+      localStorage.setItem('pushSubscription', JSON.stringify(this.pushSubscription));
+
+      return this.pushSubscription;
+    } catch (error) {
+      console.error('Failed to subscribe to push notifications:', error);
+      throw error;
+    }
+  }
+
+  // Unsubscribe from push notifications
+  async unsubscribeFromPushNotifications() {
+    try {
+      if (this.pushSubscription) {
+        await this.pushSubscription.unsubscribe();
+        this.pushSubscription = null;
+        localStorage.removeItem('pushSubscription');
+        console.log('Unsubscribed from push notifications');
+      }
+    } catch (error) {
+      console.error('Failed to unsubscribe from push notifications:', error);
+    }
+  }
+
+  // Get VAPID public key (you'll need to replace this with your actual key)
+  getVapidPublicKey() {
+    // Replace with your actual VAPID public key
+    return 'YOUR_VAPID_PUBLIC_KEY_HERE';
+  }
+
+  // Convert VAPID public key to Uint8Array
+  urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // Send push notification to server (for testing)
+  async sendPushNotification(subscription, payload) {
+    try {
+      const response = await fetch('/api/send-push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subscription,
+          payload,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send push notification');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+      throw error;
+    }
   }
 }
 

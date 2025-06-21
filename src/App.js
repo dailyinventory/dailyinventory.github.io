@@ -112,6 +112,8 @@ function App() {
   const [showFirstTimeNotificationModal, setShowFirstTimeNotificationModal] = useState(false);
   const [notificationError, setNotificationError] = useState('');
   const [showNotificationErrorModal, setShowNotificationErrorModal] = useState(false);
+  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   // Close all modals
   const closeAllModals = () => {
@@ -181,6 +183,14 @@ function App() {
         if (savedTime) {
           setNotificationTime(savedTime);
         }
+
+        // Check if push notifications are enabled
+        const savedPushSubscription = localStorage.getItem('pushSubscription');
+        setPushNotificationsEnabled(!!savedPushSubscription);
+
+        // Detect Android
+        const android = /android/i.test(navigator.userAgent);
+        setIsAndroid(android);
       }
     };
 
@@ -525,6 +535,57 @@ function App() {
       setNotificationError(
         `Simple notification failed: ${error.message}. Please check your browser settings.`
       );
+      setShowNotificationErrorModal(true);
+    }
+  };
+
+  // Push notification handlers
+  const handleEnablePushNotifications = async () => {
+    try {
+      console.log('Enabling push notifications...');
+      await notificationService.subscribeToPushNotifications();
+      setPushNotificationsEnabled(true);
+      console.log('Push notifications enabled successfully');
+    } catch (error) {
+      console.error('Error enabling push notifications:', error);
+      setNotificationError(`Failed to enable push notifications: ${error.message}`);
+      setShowNotificationErrorModal(true);
+    }
+  };
+
+  const handleDisablePushNotifications = async () => {
+    try {
+      console.log('Disabling push notifications...');
+      await notificationService.unsubscribeFromPushNotifications();
+      setPushNotificationsEnabled(false);
+      console.log('Push notifications disabled successfully');
+    } catch (error) {
+      console.error('Error disabling push notifications:', error);
+      setNotificationError(`Failed to disable push notifications: ${error.message}`);
+      setShowNotificationErrorModal(true);
+    }
+  };
+
+  const handleTestPushNotification = async () => {
+    try {
+      console.log('Testing push notification...');
+      const subscription = await notificationService.subscribeToPushNotifications();
+
+      // Send a test push notification
+      await notificationService.sendPushNotification(subscription, {
+        title: 'Test Push Notification',
+        body: 'This is a test push notification from Daily Inventory!',
+        icon: '/assets/images/icons/favicon-192x192.png',
+        data: {
+          url: '/',
+          timestamp: Date.now(),
+        },
+      });
+
+      console.log('Push notification test sent successfully');
+    } catch (error) {
+      console.error('Error testing push notification:', error);
+      setNotificationError(`Push notification test failed: ${error.message}`);
       setShowNotificationErrorModal(true);
     }
   };
@@ -1015,6 +1076,56 @@ function App() {
                       )}
                     </div>
                   </div>
+
+                  {/* Push Notifications (Android Support) */}
+                  {isAndroid && (
+                    <div className="card">
+                      <div className="card-header">
+                        <h6 className="mb-0">
+                          <FontAwesomeIcon icon={faBell} className="me-2" />
+                          Push Notifications (Android)
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        {!pushNotificationsEnabled ? (
+                          <div className="text-center">
+                            <p className="text-muted mb-3">
+                              Enable push notifications for instant reminders on Android
+                            </p>
+                            <button
+                              className="btn btn-success"
+                              onClick={handleEnablePushNotifications}
+                            >
+                              <FontAwesomeIcon icon={faBell} className="me-2" />
+                              Enable Push Notifications
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="alert alert-success mb-3">
+                              <FontAwesomeIcon icon={faBell} className="me-2" />
+                              Push notifications are enabled
+                            </div>
+                            <div className="d-flex gap-2">
+                              <button
+                                className="btn btn-outline-success btn-sm"
+                                onClick={handleTestPushNotification}
+                              >
+                                Test Push
+                              </button>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={handleDisablePushNotifications}
+                              >
+                                <FontAwesomeIcon icon={faBellSlash} className="me-2" />
+                                Disable Push
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Data Management */}
                   <div className="card">
