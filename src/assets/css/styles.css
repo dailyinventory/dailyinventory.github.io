@@ -226,6 +226,12 @@ body {
     color: var(--bs-primary-text-emphasis);
 }
 
+.alert-info {
+    background-color: #a3cfbb;
+    border: 2px solid black;
+    color: #000;
+}
+
 @media (max-width: 450px) {
     .table th,
     .table td {

@@ -415,50 +415,53 @@ function App() {
       </div>
 
       {/* Inventory Table */}
-      <div
-        className="table-responsive"
-        style={{ maxWidth: '700px', minWidth: '375px', margin: '0 auto' }}
-      >
-        <table className="table table-bordered">
-          <thead>
-            <tr className="table-inventory-header">
-              <th className="table-inventory-header">PERSONALITY CHARACTERISTICS OF SELF-WILL</th>
-              <th className="table-inventory-header fw-bold">OR</th>
-              <th className="table-inventory-header">
-                PERSONALITY CHARACTERISTICS OF GOD&apos;S WILL
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventoryData.map((pair, index) => (
-              <tr key={index} data-index={index}>
-                {pair[0] === 'HOW DO YOU FEEL?' ? (
-                  <>
-                    <td className="alert-primary fw-bold">{pair[0]}</td>
-                    <td className="alert-primary fw-bold"></td>
-                    <td className="alert-primary fw-bold">{pair[1]}</td>
-                  </>
-                ) : (
-                  <>
-                    <td
-                      className={`clickable ${selections[index] === 0 ? 'selected-left' : ''}`}
-                      onClick={() => handleSelection(index, 0)}
-                    >
-                      {pair[0]}
-                    </td>
-                    <td className="alert-primary fw-bold">OR</td>
-                    <td
-                      className={`clickable ${selections[index] === 1 ? 'selected-right' : ''}`}
-                      onClick={() => handleSelection(index, 1)}
-                    >
-                      {pair[1]}
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="card" style={{ maxWidth: '700px', minWidth: '375px', margin: '0 auto' }}>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-bordered mb-0">
+              <thead>
+                <tr className="table-inventory-header">
+                  <th className="table-inventory-header">
+                    PERSONALITY CHARACTERISTICS OF SELF-WILL
+                  </th>
+                  <th className="table-inventory-header fw-bold">OR</th>
+                  <th className="table-inventory-header">
+                    PERSONALITY CHARACTERISTICS OF GOD&apos;S WILL
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {inventoryData.map((pair, index) => (
+                  <tr key={index} data-index={index}>
+                    {pair[0] === 'HOW DO YOU FEEL?' ? (
+                      <>
+                        <td className="alert-primary fw-bold">{pair[0]}</td>
+                        <td className="alert-primary fw-bold"></td>
+                        <td className="alert-primary fw-bold">{pair[1]}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td
+                          className={`clickable ${selections[index] === 0 ? 'selected-left' : ''}`}
+                          onClick={() => handleSelection(index, 0)}
+                        >
+                          {pair[0]}
+                        </td>
+                        <td className="alert-primary fw-bold">OR</td>
+                        <td
+                          className={`clickable ${selections[index] === 1 ? 'selected-right' : ''}`}
+                          onClick={() => handleSelection(index, 1)}
+                        >
+                          {pair[1]}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Action Buttons */}
