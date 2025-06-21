@@ -19,6 +19,9 @@ import $ from 'jquery';
 import 'jquery-ui/ui/widgets/datepicker';
 import 'jquery-ui/dist/themes/base/jquery-ui.css';
 
+// Import custom styles
+import './assets/css/styles.css';
+
 // Extend dayjs with timezone support
 dayjs.extend(utc);
 dayjs.extend(timezone);
